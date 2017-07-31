@@ -1,3 +1,4 @@
+import "./style.less";
 import Vue from "vue";
 import UkDnd from "../dist/build";
 
