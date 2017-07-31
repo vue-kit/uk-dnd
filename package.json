@@ -1,0 +1,45 @@
+{
+  "name": "uk-dnd",
+  "version": "1.0.0",
+  "description": "It is a uikit drag and drop component for vue.",
+  "main": "./dist/build.js",
+  "scripts": {
+    "test": "npm run build && npm run dev",
+    "dev": "webpack-dev-server --config webpack.test.js --open --hot",
+    "build": "webpack --config webpack.prod.js --progress --hide-modules"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vue-kit/uk-dnd.git"
+  },
+  "keywords": [
+    "uikit",
+    "drag",
+    "drop",
+    "vue"
+  ],
+  "author": "lixucheng (lixucheng@aliyun.com)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/vue-kit/uk-dnd/issues"
+  },
+  "homepage": "https://github.com/vue-kit/uk-dnd#readme",
+  "devDependencies": {
+    "babel-core": "^6.25.0",
+    "babel-loader": "^7.1.1",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-env": "^1.6.0",
+    "clean-webpack-plugin": "^0.1.16",
+    "css-loader": "^0.28.4",
+    "less": "^2.7.2",
+    "less-loader": "^4.0.5",
+    "pug": "^2.0.0-rc.2",
+    "vue-loader": "^13.0.2",
+    "vue-template-compiler": "^2.4.2",
+    "webpack": "^3.4.1",
+    "webpack-dev-server": "^2.6.1"
+  },
+  "dependencies": {
+    "vue": "^2.4.2"
+  }
+}
