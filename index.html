@@ -5,25 +5,35 @@
         <title>uk-dnd</title>
     </head>
     <body>
-        <div id="app">
-            <uk-dnd style="margin:20px;">
-                <div class="uk-card uk-card-default">
-                    It is a default card.
+        <div id="app" class="uk-margin-top uk-margin-left">
+            <div class="uk-child-width-expand uk-grid-small" uk-grid>
+                <div class="uk-position-relative">
+                    <uk-dnd>
+                        <div class="uk-card uk-card-body uk-card-default">
+                            It is a default card.
+                        </div>
+                    </uk-dnd>
                 </div>
-            </uk-dnd>
-            <uk-dnd style="margin:20px;">
-                <div class="uk-card uk-card-primary">
-                    It is a primary card.
+                <div class="uk-position-relative">
+                    <uk-dnd>
+                        <div class="uk-card uk-card-body uk-card-primary">
+                            It is a primary card.
+                        </div>
+                    </uk-dnd>
                 </div>
-            </uk-dnd>
-            <uk-dnd style="margin:20px;">
-                <div class="uk-card uk-card-secondary">
-                    It is a secondary card.
+                <div class="uk-position-relative">
+                    <uk-dnd>
+                        <div class="uk-card uk-card-body uk-card-secondary">
+                            It is a secondary card.
+                        </div>
+                    </uk-dnd>
                 </div>
-            </uk-dnd>
-            <uk-dnd style="margin:20px;">
-                <span>It is only text.</span>
-            </uk-dnd>
+                <div class="uk-position-relative">
+                    <uk-dnd>
+                        <span>It is only text.</span>
+                    </uk-dnd>
+                </div>
+            </div>
         </div>
         <script src="/bundle.js"></script>
     </body>

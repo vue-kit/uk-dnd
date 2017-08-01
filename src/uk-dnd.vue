@@ -1,19 +1,29 @@
 <template lang="pug">
-    .uk-draggable(draggable="true" @dragstart="drag")
+    .uk-draggable(
+        @mousedown.stop.prevent="dragstart"
+        @mousemove.stop.prevent="drag"
+        @mouseup.stop.prevent="dragend"
+    )
         slot
 </template>
 <script>
     export default {
         methods: {
+            dragstart(evt) {
+                this.$emit("dragstart");
+            },
             drag(evt) {
-                evt.dataTransfer.setData("text", evt.target.id);
+                this.$emit("drag");
+            },
+            dragend(evt) {
+                this.$emit("dragend");
             }
         }
     }
 </script>
 <style lang="less" scoped>
     .uk-draggable {
-        display: inline-block;
+        position: absolute;
         box-sizing: border-box;
         &:hover {
             cursor: move;
