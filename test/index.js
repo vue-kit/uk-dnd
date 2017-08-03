@@ -9,5 +9,10 @@ UIkit.use(Icons);
 
 Vue.component("uk-dnd", UkDnd);
 new Vue({
-    el: "#app"
+    el: "#app",
+    methods: {
+        dragend(vm) {
+            vm.enableDrag = false;
+        }
+    }
 });

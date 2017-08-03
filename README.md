@@ -18,8 +18,9 @@ To enable drag and drop, only need to use the uk-dnd element as your node (e.g: 
 options: {
     x (option): Number, [default: 0]
     y (option): Number, [default: 0]
-    w (option): String or Number, [e.g: "200" or "200px" or "100%"] [default: "auto"]
-    h (option): String or Number  [e.g: "100" or "100px" or "50%"] [default: "auto"]
+    width (option): String or Number, [e.g: "200" or "200px" or "100%"] [default: "auto"]
+    height (option): String or Number, [e.g: "100" or "100px" or "50%"] [default: "auto"]
+    draggable (option): Boolean [default: true]
 }
 -->
 <div id="app">
