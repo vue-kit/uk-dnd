@@ -1,4 +1,5 @@
 import "uikit/dist/css/uikit.css";
+import "./vue-logo.png";
 import UIkit from "uikit";
 import Icons from "uikit/dist/js/uikit-icons";
 import Vue from "vue";
