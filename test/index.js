@@ -12,7 +12,7 @@ new Vue({
     el: "#app",
     methods: {
         dragend(vm) {
-            vm.enableDrag = false;
+            // vm.enableDrag = false;
         }
     }
 });

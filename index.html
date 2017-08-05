@@ -5,38 +5,46 @@
         <title>uk-dnd</title>
     </head>
     <body>
-        <div id="app" class="uk-margin-top uk-margin-left">
-            <div class="uk-child-width-expand uk-grid-small" uk-grid>
-                <div class="uk-position-relative">
-                    <uk-dnd x="50" y="20">
-                        <div class="uk-card uk-card-body uk-card-default">
-                            It is a default card.
-                        </div>
-                    </uk-dnd>
+        <div class="uk-container uk-margin-top uk-margin-bottom" uk-height-viewport="expand: true">
+            <div class="uk-height-1-1" uk-grid>
+                <div id="app" class="uk-width-1-4 uk-padding-remove uk-background-muted">
+                    <div class="uk-position-relative uk-align-center uk-margin-top"
+                        style="width: 80%; height: 55px;">
+                        <uk-dnd width="100%" height="100%">
+                            <div class="uk-card uk-card-body uk-card-default uk-padding-small">
+                                It is a default card.
+                            </div>
+                        </uk-dnd>
+                    </div>
+                    <div class="uk-position-relative uk-align-center" style="width: 80%; height: 55px;">
+                        <uk-dnd width="100%" height="100%">
+                            <div class="uk-card uk-card-body uk-card-primary uk-padding-small">
+                                It is a primary card.
+                            </div>
+                        </uk-dnd>
+                    </div>
+                    <div class="uk-position-relative uk-align-center" style="width: 80%; height: 55px;">
+                        <uk-dnd width="100%" height="100%">
+                            <div class="uk-card uk-card-body uk-card-secondary uk-padding-small">
+                                It is a secondary card.
+                            </div>
+                        </uk-dnd>
+                    </div>
+                    <div class="uk-position-relative uk-align-center" style="width: 80%; height: 20px;">
+                        <uk-dnd>
+                            <span>It is draggable text.</span>
+                        </uk-dnd>
+                    </div>
+                    <div class="uk-position-relative uk-align-center" style="width: 80%; height: 100px;">
+                        <uk-dnd width="100" height="100" clone="false">
+                            <img src="/test/vue-logo.png">
+                        </uk-dnd>
+                    </div>
                 </div>
-                <div class="uk-position-relative">
-                    <uk-dnd>
-                        <div class="uk-card uk-card-body uk-card-primary">
-                            It is a primary card.
-                        </div>
-                    </uk-dnd>
-                </div>
-                <div class="uk-position-relative">
-                    <uk-dnd>
-                        <div class="uk-card uk-card-body uk-card-secondary">
-                            It is a secondary card.
-                        </div>
-                    </uk-dnd>
-                </div>
-                <div class="uk-position-relative">
-                    <uk-dnd>
-                        <span>It is only text.</span>
-                    </uk-dnd>
+                <div class="uk-width-3-4">
+                    <div class="uk-tile uk-tile-muted uk-padding-remove uk-height-1-1"></div>
                 </div>
             </div>
-            <uk-dnd x="50" y="200" width="100" height="100" @dragend="dragend">
-                <img src="/test/vue-logo.png">
-            </uk-dnd>
         </div>
         <script src="/bundle.js"></script>
     </body>

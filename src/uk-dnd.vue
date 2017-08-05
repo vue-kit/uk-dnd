@@ -3,7 +3,11 @@
         slot
 </template>
 <script>
+    function normalizedBoolean(boolean) {
+        return typeof boolean === "string" ? boolean === "true" : boolean;
+    }
     export default {
+        name: "uk-dnd",
         props: {
             x: {
                 type: [String, Number],
@@ -30,7 +34,12 @@
             draggable: {
                 type: [String, Boolean],
                 default: true
-            }
+            },
+            clone: {
+                type: [String, Boolean],
+                default: true
+            },
+            target: String
         },
         data() {
             return {
@@ -39,17 +48,23 @@
                 w: this.width,
                 h: this.height,
                 enableDrag: this.draggable,
+                enableClone: this.clone,
+                dndZone: this.target,
+                opacity: 1,
                 zIndex: 1,
                 dragging: false,
                 mouseX: 0,
-                mouseY: 0
+                mouseY: 0,
+                $clonedNode: null,
+                draggingClonedNode: false
             }
         },
         computed: {
             normalizedDraggable() {
-                return typeof this.enableDrag === "string" ?
-                                this.enableDrag === "true" :
-                                this.enableDrag;
+                return normalizedBoolean(this.enableDrag);
+            },
+            normalizedClone() {
+                return normalizedBoolean(this.enableClone);
             },
             style() {
                 return {
@@ -72,32 +87,47 @@
             }
             document.documentElement.addEventListener("mousemove", this.drag, true);
             document.documentElement.addEventListener("mouseup", this.dragend, true);
+            document.documentElement.addEventListener("mouseleave", this.dragend, false);
         },
         beforeDestroy() {
             document.documentElement.removeEventListener("mousemove", this.drag, true);
             document.documentElement.removeEventListener("mouseup", this.dragend, true);
+            document.documentElement.removeEventListener("mouseleave", this.dragend, false);
         },
         methods: {
             dragstart(evt) {
                 if (this.normalizedDraggable) {
-                    this.dragging = true;
                     this.mouseX = evt.clientX;
                     this.mouseY = evt.clientY;
-                    this.zIndex += 1;
-
+                    if (this.normalizedClone) {
+                        this.draggingClonedNode = true;
+                        let $parent = this.$el.parentNode;
+                        this.$clonedNode = this.$el.cloneNode(true);
+                        this.$clonedNode.style.opacity = .6;
+                        this.$clonedNode.style.zIndex = 1000;
+                        this.$clonedNode.style.cursor = "grabbing";
+                        $parent.appendChild(this.$clonedNode);
+                    } else {
+                        this.dragging = true;
+                        this.zIndex += 1;
+                    }
                     this.$emit("dragstart", this);
                 }
             },
             drag(evt) {
-                if (this.normalizedDraggable && this.dragging) {
+                if (this.normalizedDraggable && (this.dragging || this.draggingClonedNode)) {
                     let diffX = evt.clientX - this.mouseX;
                     let diffY = evt.clientY - this.mouseY;
-
-                    if (!isNaN(this.top)) {
-                        this.top = +this.top + +diffY;
-                    }
-                    if (!isNaN(this.left)) {
-                        this.left = +this.left + +diffX;
+                    if (this.normalizedClone) {
+                        this.$clonedNode.style.top = (parseInt(this.$clonedNode.style.top) + diffY) + "px";
+                        this.$clonedNode.style.left = (parseInt(this.$clonedNode.style.left) + diffX) + "px";
+                    } else {
+                        if (!isNaN(this.top)) {
+                            this.top = +this.top + +diffY;
+                        }
+                        if (!isNaN(this.left)) {
+                            this.left = +this.left + +diffX;
+                        }
                     }
                     this.mouseX = evt.clientX;
                     this.mouseY = evt.clientY;
@@ -106,10 +136,14 @@
                 }
             },
             dragend(evt) {
-                if (this.normalizedDraggable && this.dragging) {
-                    this.dragging = false;
-                    this.zIndex -= 1;
-
+                if (this.normalizedDraggable && (this.dragging || this.draggingClonedNode)) {
+                    if (this.normalizedClone) {
+                        this.draggingClonedNode = false;
+                        this.$clonedNode.parentNode.removeChild(this.$clonedNode);
+                    } else {
+                        this.dragging = false;
+                        this.zIndex -= 1;
+                    }
                     this.$emit("dragend", this);
                 }
             }
