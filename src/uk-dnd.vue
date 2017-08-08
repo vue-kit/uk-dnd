@@ -11,35 +11,55 @@
         props: {
             x: {
                 type: [String, Number],
-                default: 0
+                default: 0,
+                validator(val) {
+                    return !isNaN(val);
+                }
             },
             y: {
                 type: [String, Number],
-                default: 0
+                default: 0,
+                validator(val) {
+                    return !isNaN(val);
+                }
             },
             width: {
                 type: [String, Number],
                 default: "auto",
                 validator(val) {
-                    return isNaN(val) ? true : val > 0;
+                    return val === "auto" || (!isNaN(val) && parseFloat(val) > 0) ||
+                        (/^\d+(\.\d+)?vw|%|cm|mm|in|px$/.test(val) && parseFloat(val) > 0);
                 }
             },
             height: {
                 type: [String, Number],
                 default: "auto",
                 validator(val) {
-                    return isNaN(val) ? true : val > 0;
+                    return val === "auto" || (!isNaN(val) && parseFloat(val) > 0) ||
+                        (/^\d+(\.\d+)?vh|%|cm|mm|in|px$/.test(val) && parseFloat(val) > 0);
                 }
             },
             draggable: {
                 type: [String, Boolean],
-                default: true
+                default: true,
+                validator(val) {
+                    return typeof val === "boolean" || val === "true" || val === "false";
+                }
             },
             clone: {
                 type: [String, Boolean],
-                default: true
+                default: true,
+                validator(val) {
+                    return typeof val === "boolean" || val === "true" || val === "false";
+                }
             },
-            target: String
+            target: {
+                type: String,
+                default: null,
+                validator(val) {
+                    return /^(#|\.)/.test(val) && val.length > 1;
+                }
+            }
         },
         data() {
             return {
@@ -50,13 +70,11 @@
                 enableDrag: this.draggable,
                 enableClone: this.clone,
                 dndZone: this.target,
-                opacity: 1,
                 zIndex: 1,
                 dragging: false,
                 mouseX: 0,
                 mouseY: 0,
-                $clonedNode: null,
-                draggingClonedNode: false
+                $clonedNode: null
             }
         },
         computed: {
@@ -66,6 +84,17 @@
             normalizedClone() {
                 return normalizedBoolean(this.enableClone);
             },
+            normalizedDndZone() {
+                if (this.dndZone) {
+                    if (this.dndZone.substring(0, 1) === "#") {
+                        return document.getElementById(this.dndZone.substring(1));
+                    } else if (this.dndZone.substring(0, 1) === ".") {
+                        let elms = document.getElementsByClassName(this.dndZone.substring(1));
+                        if (elms.length) return elms[0];
+                    }
+                }
+                return null;
+            },
             style() {
                 return {
                     top: isNaN(this.top) ? this.top : this.top + "px",
@@ -73,7 +102,7 @@
                     width: isNaN(this.w) ? this.w : this.w + "px",
                     height: isNaN(this.h) ? this.h : this.h + "px",
                     zIndex: this.zIndex,
-                    cursor: this.normalizedDraggable ? (this.dragging ? "grabbing" : "grab") : "default"
+                    cursor: this.normalizedDraggable ? "move" : "default"
                 }
             }
         },
@@ -97,10 +126,10 @@
         methods: {
             dragstart(evt) {
                 if (this.normalizedDraggable) {
+                    this.dragging = true;
                     this.mouseX = evt.clientX;
                     this.mouseY = evt.clientY;
                     if (this.normalizedClone) {
-                        this.draggingClonedNode = true;
                         let $parent = this.$el.parentNode;
                         this.$clonedNode = this.$el.cloneNode(true);
                         this.$clonedNode.style.opacity = .6;
@@ -108,14 +137,13 @@
                         this.$clonedNode.style.cursor = "grabbing";
                         $parent.appendChild(this.$clonedNode);
                     } else {
-                        this.dragging = true;
                         this.zIndex += 1;
                     }
                     this.$emit("dragstart", this);
                 }
             },
             drag(evt) {
-                if (this.normalizedDraggable && (this.dragging || this.draggingClonedNode)) {
+                if (this.normalizedDraggable && this.dragging) {
                     let diffX = evt.clientX - this.mouseX;
                     let diffY = evt.clientY - this.mouseY;
                     if (this.normalizedClone) {
@@ -136,15 +164,31 @@
                 }
             },
             dragend(evt) {
-                if (this.normalizedDraggable && (this.dragging || this.draggingClonedNode)) {
+                if (this.normalizedDraggable && this.dragging) {
+                    this.dragging = false;
+                    let style = window.getComputedStyle(this.$el, null);
+                    let _x, _y;
+                    let _w = parseFloat(style.getPropertyValue("width"));
+                    let _h = parseFloat(style.getPropertyValue("height"));
+
                     if (this.normalizedClone) {
-                        this.draggingClonedNode = false;
+                        _x = parseInt(this.$clonedNode.style.left);
+                        _y = parseInt(this.$clonedNode.style.top);
                         this.$clonedNode.parentNode.removeChild(this.$clonedNode);
                     } else {
-                        this.dragging = false;
                         this.zIndex -= 1;
+                        _x = parseInt(this.left);
+                        _y = parseInt(this.top);
                     }
-                    this.$emit("dragend", this);
+                    if (this.normalizedDndZone) {
+                        let originRect = this.$el.parentNode.getBoundingClientRect();
+                        let targetRect = this.normalizedDndZone.getBoundingClientRect();
+                        let diffX = originRect.x - targetRect.x;
+                        let diffY = originRect.y - targetRect.y;
+                        _x = +_x + +diffX;
+                        _y = +_y + +diffY;
+                    }
+                    this.$emit("dragend", _x, _y, _w, _h, this.$slots.default);
                 }
             }
         }
