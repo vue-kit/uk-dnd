@@ -22,7 +22,8 @@ new Vue({
                             y: y,
                             width: width,
                             height: height,
-                            clone: false
+                            clone: false,
+                            target: ".uk-tile"
                         }
                     },
                     children

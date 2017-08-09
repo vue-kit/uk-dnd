@@ -6,6 +6,14 @@
     function normalizedBoolean(boolean) {
         return typeof boolean === "string" ? boolean === "true" : boolean;
     }
+    function getDiff(origin, target) {
+        let originRect = origin.getBoundingClientRect();
+        let targetRect = target.getBoundingClientRect();
+        return {
+            x: originRect.x - targetRect.x,
+            y: originRect.y - targetRect.y
+        }
+    }
     export default {
         name: "uk-dnd",
         props: {
@@ -139,7 +147,6 @@
                     } else {
                         this.zIndex += 1;
                     }
-                    this.$emit("dragstart", this);
                 }
             },
             drag(evt) {
@@ -150,17 +157,30 @@
                         this.$clonedNode.style.top = (parseInt(this.$clonedNode.style.top) + diffY) + "px";
                         this.$clonedNode.style.left = (parseInt(this.$clonedNode.style.left) + diffX) + "px";
                     } else {
-                        if (!isNaN(this.top)) {
-                            this.top = +this.top + +diffY;
-                        }
-                        if (!isNaN(this.left)) {
-                            this.left = +this.left + +diffX;
+                        let offsetX = +this.left + +diffX;
+                        let offsetY = +this.top + +diffY;
+                        if (this.normalizedDndZone) {
+                            let style = window.getComputedStyle(this.$el, null);
+                            let _w = parseFloat(style.getPropertyValue("width"));
+                            let _h = parseFloat(style.getPropertyValue("height"));
+
+                            let diff = getDiff(this.$el.parentNode, this.normalizedDndZone);
+                            let targetRect = this.normalizedDndZone.getBoundingClientRect();
+                            let _x = offsetX + +diff.x;
+                            let _y = offsetY + +diff.y;
+                            if (_x >= 0 && (_x + _w) <= targetRect.width) {
+                                this.left = _x;
+                            }
+                            if (_y >= 0 && (_y + _h) <= targetRect.height) {
+                                this.top = _y;
+                            }
+                        } else {
+                            this.top = offsetY;
+                            this.left = offsetX;
                         }
                     }
                     this.mouseX = evt.clientX;
                     this.mouseY = evt.clientY;
-
-                    this.$emit("drag", this);
                 }
             },
             dragend(evt) {
@@ -181,14 +201,16 @@
                         _y = parseInt(this.top);
                     }
                     if (this.normalizedDndZone) {
-                        let originRect = this.$el.parentNode.getBoundingClientRect();
+                        let diff = getDiff(this.$el.parentNode, this.normalizedDndZone);
                         let targetRect = this.normalizedDndZone.getBoundingClientRect();
-                        let diffX = originRect.x - targetRect.x;
-                        let diffY = originRect.y - targetRect.y;
-                        _x = +_x + +diffX;
-                        _y = +_y + +diffY;
+                        _x = +_x + +diff.x;
+                        _y = +_y + +diff.y;
+                        //If node drop to the target, fire the event
+                        if (_x >=0 && _y >=0 &&
+                            (_x + _w) <= targetRect.width && (_y + _h) <= targetRect.height) {
+                            this.$emit("drop-to-target", _x, _y, _w, _h, this.$slots.default);
+                        }
                     }
-                    this.$emit("dragend", _x, _y, _w, _h, this.$slots.default);
                 }
             }
         }
