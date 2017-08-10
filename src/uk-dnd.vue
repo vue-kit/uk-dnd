@@ -6,12 +6,16 @@
     function normalizedBoolean(boolean) {
         return typeof boolean === "string" ? boolean === "true" : boolean;
     }
-    function getDiff(origin, target) {
-        let originRect = origin.getBoundingClientRect();
-        let targetRect = target.getBoundingClientRect();
+    function detectInTarget(node, originZone, targetZone) {
+        let originRect = originZone.getBoundingClientRect();
+        let targetRect = targetZone.getBoundingClientRect();
+        let x = node.x + (originRect.x - targetRect.x);
+        let y = node.y + (originRect.y - targetRect.y);
         return {
-            x: originRect.x - targetRect.x,
-            y: originRect.y - targetRect.y
+            relativeToTargetX: x,
+            relativeToTargetY: y,
+            inHorizontal: x >= 0 && (x + node.width) <= targetRect.width,
+            inVertical: y >= 0 && (y + node.height) <= targetRect.height
         }
     }
     export default {
@@ -116,12 +120,8 @@
         },
         mounted() {
             let style = window.getComputedStyle(this.$el, null);
-            if (this.w === "auto") {
-                this.w = parseFloat(style.getPropertyValue("width"));
-            }
-            if (this.h === "auto") {
-                this.h = parseFloat(style.getPropertyValue("height"));
-            }
+            this.w = parseFloat(style.getPropertyValue("width"));
+            this.h = parseFloat(style.getPropertyValue("height"));
             document.documentElement.addEventListener("mousemove", this.drag, true);
             document.documentElement.addEventListener("mouseup", this.dragend, true);
             document.documentElement.addEventListener("mouseleave", this.dragend, false);
@@ -160,19 +160,18 @@
                         let offsetX = +this.left + +diffX;
                         let offsetY = +this.top + +diffY;
                         if (this.normalizedDndZone) {
-                            let style = window.getComputedStyle(this.$el, null);
-                            let _w = parseFloat(style.getPropertyValue("width"));
-                            let _h = parseFloat(style.getPropertyValue("height"));
-
-                            let diff = getDiff(this.$el.parentNode, this.normalizedDndZone);
-                            let targetRect = this.normalizedDndZone.getBoundingClientRect();
-                            let _x = offsetX + +diff.x;
-                            let _y = offsetY + +diff.y;
-                            if (_x >= 0 && (_x + _w) <= targetRect.width) {
-                                this.left = _x;
+                            let node = {
+                                x: offsetX,
+                                y: offsetY,
+                                width: this.w,
+                                height: this.h
                             }
-                            if (_y >= 0 && (_y + _h) <= targetRect.height) {
-                                this.top = _y;
+                            let detection = detectInTarget(node, this.$el.parentNode, this.normalizedDndZone);
+                            if (detection.inHorizontal) {
+                                this.left = offsetX;
+                            }
+                            if (detection.inVertical) {
+                                this.top = offsetY;
                             }
                         } else {
                             this.top = offsetY;
@@ -186,11 +185,7 @@
             dragend(evt) {
                 if (this.normalizedDraggable && this.dragging) {
                     this.dragging = false;
-                    let style = window.getComputedStyle(this.$el, null);
                     let _x, _y;
-                    let _w = parseFloat(style.getPropertyValue("width"));
-                    let _h = parseFloat(style.getPropertyValue("height"));
-
                     if (this.normalizedClone) {
                         _x = parseInt(this.$clonedNode.style.left);
                         _y = parseInt(this.$clonedNode.style.top);
@@ -201,14 +196,21 @@
                         _y = parseInt(this.top);
                     }
                     if (this.normalizedDndZone) {
-                        let diff = getDiff(this.$el.parentNode, this.normalizedDndZone);
-                        let targetRect = this.normalizedDndZone.getBoundingClientRect();
-                        _x = +_x + +diff.x;
-                        _y = +_y + +diff.y;
+                        let node = {
+                            x: _x,
+                            y: _y,
+                            width: this.w,
+                            height: this.h
+                        }
+                        let detection = detectInTarget(node, this.$el.parentNode, this.normalizedDndZone);
                         //If node drop to the target, fire the event
-                        if (_x >=0 && _y >=0 &&
-                            (_x + _w) <= targetRect.width && (_y + _h) <= targetRect.height) {
-                            this.$emit("drop-to-target", _x, _y, _w, _h, this.$slots.default);
+                        if (detection.inHorizontal && detection.inVertical) {
+                            this.$emit("drop-to-target",
+                                        detection.relativeToTargetX,
+                                        detection.relativeToTargetY,
+                                        this.w,
+                                        this.h,
+                                        this.$slots.default);
                         }
                     }
                 }
