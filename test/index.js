@@ -22,8 +22,12 @@ new Vue({
                             y: y,
                             width: width,
                             height: height,
-                            clone: false,
                             target: ".uk-tile"
+                        },
+                        on: {
+                            drag(evt, x, y, width, height) {
+                                // console.log(evt, x, y, width, height);
+                            }
                         }
                     },
                     children

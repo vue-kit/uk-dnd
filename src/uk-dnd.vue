@@ -36,13 +36,6 @@
                         (/^\d+(\.\d+)?vh|%|cm|mm|in|px$/.test(val) && parseFloat(val) > 0);
                 }
             },
-            clone: {
-                type: [String, Boolean],
-                default: true,
-                validator(val) {
-                    return typeof val === "boolean" || val === "true" || val === "false";
-                }
-            },
             target: {
                 type: String,
                 default: null,
@@ -63,9 +56,6 @@
             }
         },
         computed: {
-            cloneable() {
-                return typeof this.clone === "string" ? this.clone === "true" : this.clone;
-            },
             dndZone() {
                 if (this.target && this.target.length > 1) {
                     if (/^#/.test(this.target)) {
@@ -112,7 +102,7 @@
         methods: {
             dragstart(evt) {
                 this.dragging = true;
-                if (this.cloneable) {
+                if (this.dndZone && this.dndZone != this.$el.parentNode) {
                     document.documentElement.style.cursor = "grabbing";
                     let $parent = this.$el.parentNode;
                     this.$clonedNode = this.$el.cloneNode(true);
@@ -127,7 +117,7 @@
             },
             drag(evt) {
                 if (this.dragging) {
-                    if (this.cloneable) {
+                    if (this.$clonedNode) {
                         this.$clonedNode.style.top =
                             (parseInt(this.$clonedNode.style.top) + evt.movementY) + "px";
                         this.$clonedNode.style.left =
@@ -135,8 +125,9 @@
                     } else {
                         let offsetX = this.left + evt.movementX;
                         let offsetY = this.top + evt.movementY;
-                        if (offsetX >= 0) this.left = offsetX;
-                        if (offsetY >= 0) this.top = offsetY;
+                        if (!this.dndZone || offsetX >= 0) this.left = offsetX;
+                        if (!this.dndZone || offsetY >= 0) this.top = offsetY;
+                        this.$emit("drag", evt, offsetX, offsetY, this.w, this.h);
                     }
                 }
             },
@@ -144,22 +135,21 @@
                 if (this.dragging) {
                     this.dragging = false;
                     document.documentElement.style.cursor = "auto";
-                    if (this.cloneable) {
+                    if (this.$clonedNode) {
                         this.$clonedNode.parentNode.removeChild(this.$clonedNode);
-                        if (this.dndZone) {
-                            let x = parseInt(this.$clonedNode.style.left);
-                            let y = parseInt(this.$clonedNode.style.top);
-                            let originRect = this.$el.parentNode.getBoundingClientRect();
-                            let targetRect = this.dndZone.getBoundingClientRect();
-                            let offsetX = x + (originRect.x - targetRect.x) + this.dndZone.scrollLeft;
-                            let offsetY = y + (originRect.y - targetRect.y) + this.dndZone.scrollTop;
-                            if (offsetX >=0 && offsetY >= 0) {
-                                this.$emit("drop-to-target",
-                                            offsetX, offsetY,
-                                            this.w, this.h,
-                                            this.$slots.default);
-                            }
+                        let x = parseInt(this.$clonedNode.style.left);
+                        let y = parseInt(this.$clonedNode.style.top);
+                        let originRect = this.$el.parentNode.getBoundingClientRect();
+                        let targetRect = this.dndZone.getBoundingClientRect();
+                        let offsetX = x + (originRect.x - targetRect.x) + this.dndZone.scrollLeft;
+                        let offsetY = y + (originRect.y - targetRect.y) + this.dndZone.scrollTop;
+                        if (offsetX >=0 && offsetY >= 0) {
+                            this.$emit("drop-to-target",
+                                        offsetX, offsetY,
+                                        this.w, this.h,
+                                        this.$slots.default);
                         }
+                        this.$clonedNode = null;
                     } else {
                         this.zIndex -= 1;
                     }
