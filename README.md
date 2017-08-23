@@ -11,7 +11,7 @@ $ npm install --save uk-dnd
 
 ## Usage
 
-To enable drag and drop, only need to use the uk-dnd element as your node (e.g: span, img, div, etc.) wrapper, for example:
+To enable drag and drop, only need to use the **uk-dnd** tag as your DOM element (e.g: span, img, div, etc.) wrapper, for example:
 
 ```
 <!--
@@ -20,21 +20,32 @@ options: {
     y (optional): Number, [default: 0]
     width (optional): String or Number, [e.g: "200" or "200px" or "100%"] [default: "auto"]
     height (optional): String or Number, [e.g: "100" or "100px" or "50%"] [default: "auto"]
-    draggable (optional): Boolean, [default: true]
-    clone (optional): Boolean, [default: true]
     target (optional): String [e.g: "#id" or ".class"] [default: null]
 }
-event: {
-    name: "drop-to-target",
-    description: "If target option is exist and the draggable node drop to the target, will fire the event.",
-    arguments: {
-        x: "Left position of draggable node relative to target",
-        y: "Top position of draggable node relative to target",
-        width: "The computed width of draggable node",
-        height: "The computed height of draggable node",
-        children: "A collection of child nodes of draggable node"
+event: [
+    {
+        name: "drag",
+        description: "When draggable node drag on the target, will fire the event.",
+        arguments: {
+            event: "Mouse move event",
+            x: "Left position of draggable node relative to target",
+            y: "Top position of draggable node relative to target",
+            width: "The computed width of draggable node",
+            height: "The computed height of draggable node"
+        }
+    },
+    {
+        name: "drop-to-target",
+        description: "If target option is exist and the draggable node drop to the target, will fire the event.",
+        arguments: {
+            x: "Left position of draggable node relative to target",
+            y: "Top position of draggable node relative to target",
+            width: "The computed width of draggable node",
+            height: "The computed height of draggable node",
+            children: "A collection of child nodes of draggable node"
+        }
     }
-}
+]
 -->
 <div id="app">
     <uk-dnd target="#container" @drop-to-target="dragend">
@@ -63,8 +74,12 @@ new Vue({
                             y: y,
                             width: width,
                             height: height,
-                            clone: false,
                             target: "#container"
+                        },
+                        on: {
+                            drag(evt, x, y, width, height) {
+                                console.log(evt, x, y, width, height);
+                            }
                         }
                     },
                     children
