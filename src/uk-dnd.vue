@@ -51,7 +51,6 @@
                 w: this.width,
                 h: this.height,
                 zIndex: 1,
-                dragging: false,
                 $clonedNode: null
             }
         },
@@ -90,18 +89,12 @@
             let style = window.getComputedStyle(this.$el, null);
             this.w = parseFloat(style.getPropertyValue("width"));
             this.h = parseFloat(style.getPropertyValue("height"));
-            document.documentElement.addEventListener("mousemove", this.drag, true);
-            document.documentElement.addEventListener("mouseup", this.dragend, true);
-            document.documentElement.addEventListener("mouseleave", this.dragend, false);
-        },
-        beforeDestroy() {
-            document.documentElement.removeEventListener("mousemove", this.drag, true);
-            document.documentElement.removeEventListener("mouseup", this.dragend, true);
-            document.documentElement.removeEventListener("mouseleave", this.dragend, false);
         },
         methods: {
             dragstart(evt) {
-                this.dragging = true;
+                document.documentElement.addEventListener("mousemove", this.drag, true);
+                document.documentElement.addEventListener("mouseup", this.dragend, true);
+                document.documentElement.addEventListener("mouseleave", this.dragend, false);
                 if (this.dndZone && this.dndZone != this.$el.parentNode) {
                     document.documentElement.style.cursor = "grabbing";
                     let $parent = this.$el.parentNode;
@@ -116,43 +109,41 @@
                 }
             },
             drag(evt) {
-                if (this.dragging) {
-                    if (this.$clonedNode) {
-                        this.$clonedNode.style.top =
-                            (parseInt(this.$clonedNode.style.top) + evt.movementY) + "px";
-                        this.$clonedNode.style.left =
-                            (parseInt(this.$clonedNode.style.left) + evt.movementX) + "px";
-                    } else {
-                        let offsetX = this.left + evt.movementX;
-                        let offsetY = this.top + evt.movementY;
-                        if (!this.dndZone || offsetX >= 0) this.left = offsetX;
-                        if (!this.dndZone || offsetY >= 0) this.top = offsetY;
-                        this.$emit("drag", evt, offsetX, offsetY, this.w, this.h);
-                    }
+                if (this.$clonedNode) {
+                    this.$clonedNode.style.top =
+                        (parseInt(this.$clonedNode.style.top) + evt.movementY) + "px";
+                    this.$clonedNode.style.left =
+                        (parseInt(this.$clonedNode.style.left) + evt.movementX) + "px";
+                } else {
+                    let offsetX = this.left + evt.movementX;
+                    let offsetY = this.top + evt.movementY;
+                    if (!this.dndZone || offsetX >= 0) this.left = offsetX;
+                    if (!this.dndZone || offsetY >= 0) this.top = offsetY;
+                    this.$emit("drag", evt, offsetX, offsetY, this.w, this.h);
                 }
             },
             dragend(evt) {
-                if (this.dragging) {
-                    this.dragging = false;
-                    document.documentElement.style.cursor = "auto";
-                    if (this.$clonedNode) {
-                        this.$clonedNode.parentNode.removeChild(this.$clonedNode);
-                        let x = parseInt(this.$clonedNode.style.left);
-                        let y = parseInt(this.$clonedNode.style.top);
-                        let originRect = this.$el.parentNode.getBoundingClientRect();
-                        let targetRect = this.dndZone.getBoundingClientRect();
-                        let offsetX = x + (originRect.x - targetRect.x) + this.dndZone.scrollLeft;
-                        let offsetY = y + (originRect.y - targetRect.y) + this.dndZone.scrollTop;
-                        if (offsetX >=0 && offsetY >= 0) {
-                            this.$emit("drop-to-target",
-                                        offsetX, offsetY,
-                                        this.w, this.h,
-                                        this.$slots.default);
-                        }
-                        this.$clonedNode = null;
-                    } else {
-                        this.zIndex -= 1;
+                document.documentElement.removeEventListener("mousemove", this.drag, true);
+                document.documentElement.removeEventListener("mouseup", this.dragend, true);
+                document.documentElement.removeEventListener("mouseleave", this.dragend, false);
+                document.documentElement.style.cursor = "auto";
+                if (this.$clonedNode) {
+                    this.$clonedNode.parentNode.removeChild(this.$clonedNode);
+                    let x = parseInt(this.$clonedNode.style.left);
+                    let y = parseInt(this.$clonedNode.style.top);
+                    let originRect = this.$el.parentNode.getBoundingClientRect();
+                    let targetRect = this.dndZone.getBoundingClientRect();
+                    let offsetX = x + (originRect.x - targetRect.x) + this.dndZone.scrollLeft;
+                    let offsetY = y + (originRect.y - targetRect.y) + this.dndZone.scrollTop;
+                    if (offsetX >=0 && offsetY >= 0) {
+                        this.$emit("drop-to-target",
+                                    offsetX, offsetY,
+                                    this.w, this.h,
+                                    this.$slots.default);
                     }
+                    this.$clonedNode = null;
+                } else {
+                    this.zIndex -= 1;
                 }
             }
         }
