@@ -1,5 +1,5 @@
 <template lang="pug">
-    .uk-draggable(@mousedown.stop.prevent="dragstart" :style="style")
+    .uk-draggable(:id="id" @mousedown.stop.prevent="dragstart" :style="style")
         slot
 </template>
 <script>
@@ -46,6 +46,7 @@
         },
         data() {
             return {
+                id: "dnd-" + Date.now(),
                 left: parseInt(this.x),
                 top: parseInt(this.y),
                 w: this.width,
@@ -146,6 +147,11 @@
                     this.zIndex -= 1;
                 }
             }
+        },
+        beforeDestroy() {
+            document.documentElement.removeEventListener("mousemove", this.drag, true);
+            document.documentElement.removeEventListener("mouseup", this.dragend, true);
+            document.documentElement.removeEventListener("mouseleave", this.dragend, false);
         }
     }
 </script>
